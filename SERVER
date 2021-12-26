@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+import socket
+import sys
+import time
+import errno
+import math
+from multiprocessing import Process
+
+ok_message = 'HTTP/1.0 200 OK\n\n'
+nok_message = 'HTTP/1.0 404 Not Found\n\n'
+
+
+def mathematicalfunc(s_sock):
+    Response  = '\nWELCOME TO THE SERVER!'
+    s_sock.send(Response.encode('utf-8'))
+
+    Response2 =s_sock.recv(1024)
+    print(Response2.decode('utf-8'))
+    while True:
+        num = s_sock.recv(2048).decode('utf-8').split(':')
+
+        if num[0] == '1':
+            reply = math.log(float(num[1]))
+
+        elif num[0] == '2':
+            reply = math.sqrt(float(num[1]))
+
+        elif num[0] == '3':
+            reply = math.exp(float(num[1]))
+
+        elif num[0] == '4':
+            reply = math.degrees(float(num[1]))
+
+        elif num[0] == '5':
+            reply = math.radians(float(num[1]))
+
+        else:
+            sys.exit()
+ s_sock.sendall(str.encode(str(reply)))
+    s_sock.close()
+
+
+if __name__ == '__main__':
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', 8888))
+    print('\nCONNECTING..')
+    s.listen(3)
+
+    try:
+        while True:
+            try:
+                s_sock, s_addr = s.accept()
+                p = Process(target=mathematicalfunc, args=(s_sock,))
+                p.start()
+            except socket.error:
+                print('GOT A SOCKET ERROR!')
+
+    except Exception as e:
+        print('AN EXCEPTION OCCURRED!')
+        print(e)
